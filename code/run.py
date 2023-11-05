@@ -14,10 +14,13 @@ def main():
     # Train data
     resnet = ResNetClassifier(
         data_loaders=extracted_dataloader,
-        num_labels=len(dataset_info.class_lbl)
+        num_labels=len(dataset_info.class_lbl),
+        epoches=3
     )
     resnet.train()
-    print("Finished training")
+
+    # TODO: Save training data in some file (Saves time)
+    resnet.save(filename="model_two_class_v1")
 
 
 if __name__ == "__main__":

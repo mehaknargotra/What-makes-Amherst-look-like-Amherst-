@@ -2,6 +2,7 @@ import numpy as np
 from torchvision.models import resnet50, ResNet50_Weights
 from tqdm import tqdm
 import torch
+import os
 
 
 # TODO: Need to get/copy ResNet classifier
@@ -109,35 +110,58 @@ class ResNetClassifier():
         https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
         """
         
+        # Loop over all the epochs
         for epoch in range(self.epoches):
+            
+            # Define a dictionary, similar to the one we defined earlier, to keep track of the metrics for the current epoch.
             ep_metrics = {
                 'train': {'loss': 0, 'accuracy': 0, 'count': 0},
                 'val': {'loss': 0, 'accuracy': 0, 'count': 0},
             }
             print(f'Epoch {epoch}')
 
+            # Do both training and validation for each epoch.
             for phase in ['train', 'val']:
                 print(f'-------- {phase} --------')
+                
+                # Loop over the batches of data.
+                # Each batch in the dataloader is a 2-tuple since our custom dataset has 2 outputs (the image and the label)
                 for images, labels in tqdm(self.dataloaders[phase]):
+                    
+                    # Reset the optimizer’s gradient to zero (else the gradient will get accumulated from previous batches)
                     self.optimizer.zero_grad()
 
+                    # If we’re in the training phase, we keep track of the gradients. 
+                    # If not, we don’t keep track of the gradient since it saves compute power and memory. In both cases
                     with torch.set_grad_enabled(phase == 'train'):
+                        
+                        # We run the images through the model and get the output
                         output = self.model(images.to(self.device))
+                        
+                        # Turn the labels into one-hot encoded vectors
                         ohe_label = torch.nn.functional.one_hot(labels, num_classes=self.num_labels)
 
+                        # Use the one-hot encoded labels to calculate the loss
                         loss = self.criterion(output, ohe_label.float().to(self.device))
 
+                        # Use argmax to get the predicted labels and use them with the ground truth labels to calculate the accuracies
                         correct_preds = labels.to(self.device) == torch.argmax(output, dim=1)
                         accuracy = (correct_preds).sum()/len(labels)
 
                     if phase == 'train':
+                        # Backpropagate through the loss and calculate the gradients
                         loss.backward()
+
+                        # Update weights as per the calculated gradients
                         self.optimizer.step()
 
+                    # Keep track of the total accuracy, total loss, and batch count, 
+                    # since they can be used to calculate the accuracy and loss for the entire epoch.
                     ep_metrics[phase]['loss'] += loss.item()
                     ep_metrics[phase]['accuracy'] += accuracy.item()
                     ep_metrics[phase]['count'] += 1
             
+                # Calculate the epoch loss and epoch accuracy, and update the overall metrics dictionary.
                 ep_loss = ep_metrics[phase]['loss']/ep_metrics[phase]['count']
                 ep_accuracy = ep_metrics[phase]['accuracy']/ep_metrics[phase]['count']
 
@@ -145,6 +169,33 @@ class ResNetClassifier():
 
                 self.metrics[phase]['loss'].append(ep_loss)
                 self.metrics[phase]['accuracy'].append(ep_accuracy)
+
+    def save(self, filename: str, file_type: str = ".pth", save_to_dir: str = "./models"):
+        """
+        Save trained model/data into a file
+        :param filename: name of file to save as
+        :param file_type: type of file to save as (default: .pth)
+        :param save_to_dir: location of where to save (default: models folder)
+        """
+        # Validate save_to_dir; if it does not exist, create save_to_dir
+        if not os.path.exists(save_to_dir):
+            try:  
+                os.mkdir(save_to_dir)  
+            except OSError as error:  
+                print(error)   
+
+        # Create path and validate existence; 
+        save_to_path = f'{save_to_dir}/{filename}{file_type}'
+
+        # Save training data
+        torch.save(
+            {
+                'epoch': self.epoches,
+                'model_state_dict': self.model.state_dict(),
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'metrics': self.metrics,
+            }, 
+	        save_to_path)
 
 
 # Old Function: Ignore
