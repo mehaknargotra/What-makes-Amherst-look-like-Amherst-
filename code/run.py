@@ -12,17 +12,20 @@ def main():
     # Extract and process data from data_loader
     extracted_dataloader, dataset_info, val_dataset_imgs = data_loader(dataset_dir=binary_dir)
 
-    # Get list of validation datasets
-    val_dataset_imgs = val_dataset_imgs[50:80]
+    # Get list of validation datasets (Specifically filter for Amherst-only validation)
+    val_dataset_imgs = [path for path in val_dataset_imgs if '/Amherst/' in path]
+    # Set number of images to try out on in validation set
+    val_dataset_imgs = val_dataset_imgs[:40]
 
     # Switch on whether to enable training or otherwise
-    model_name = "model_binary_3cities_20epochs_nograd"
+    max_epochs = 20
+    model_name = f"model_binary_16cities_{max_epochs}epochs_nograd"
     if True:
         # Train data
         resnet = ResNetClassifier(
             data_loaders=extracted_dataloader,
             num_labels=len(dataset_info.class_lbl),
-            epochs=20
+            epochs=max_epochs
         )
         resnet.train()
 
@@ -33,7 +36,7 @@ def main():
         resnet.save(filename=model_name)
     
     # Run CAM
-    sample_imgs = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset/Amherst/CS682-1373-Pt9"
+    # sample_imgs = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset/Amherst/CS682-1373-Pt9"
     cam = ClassActivationMap()
     cam.set_image_paths(val_dataset_imgs)
     # cam.set_image_batch(val_data, [0, 1])
@@ -41,7 +44,7 @@ def main():
     cam.extract_model(file_name=model_name)
     cam.run()
     cam.graph()
-    print("------------------ FINISHED ------------------")
+    print("\n------------------ FINISHED ------------------")
 
 
 if __name__ == "__main__":

@@ -163,12 +163,12 @@ def data_loader(dataset_dir: str):
     # Calling tranform(image) would return an image which is an augmented version of the input image.
     # TODO: Data Augmentation in transform doc
     transform = transforms.Compose([
-        transforms.Resize((128, 128)),
+        transforms.Resize((64, 64)),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation(degrees=10),
         transforms.RandomRotation(degrees=20),
         transforms.RandomRotation(degrees=40),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
     # Define dataset

@@ -108,28 +108,6 @@ class ClassActivationMap():
         """
         print("Running CAM ...")
 
-        # if len(self.dataset) > 0:
-        #     # Loop through for every image in list
-        #     for img in tqdm(self.dataset):
-
-        #         print(img)
-
-        #         # Create transformer
-        #         test_transforms = transforms.Compose([
-        #             transforms.Resize(224),
-        #             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        #         ])
-
-        #         # Preprocess it for your chosen model
-        #         input_tensor = test_transforms(img)
-                
-        #         with SmoothGradCAMpp(self.model) as cam_extractor:
-        #             # Preprocess your data and feed it to the model
-        #             out = self.model(input_tensor.unsqueeze(0))
-                    
-        #             # Retrieve the CAM by passing the class index and the model output
-        #             self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
-
         if len(self.image_paths) > 0:
             # Loop through for every image in list
             for img_path in tqdm(self.image_paths):
@@ -140,7 +118,7 @@ class ClassActivationMap():
                 # Create transformer
                 test_transforms = transforms.Compose([
                     transforms.Resize(224),
-                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                    # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                     ])
 
                 # Preprocess it for your chosen model
@@ -178,14 +156,3 @@ class ClassActivationMap():
             plt.axis('off')
             plt.tight_layout()
             plt.savefig(f'{save_to_dir}/CAM_V2_{idx}.png')
-
-
-
-# image, label = next(iter(dataloaders['val']))
-# model.eval()
-# scores = model(image) # get the raw scores
-# probs = F.softmax(scores, dim=1).data.squeeze() # use softmax to generate the probability distribution for the scores
-# probs, idx = probs.sort(0, True) # sort the probability distribution in descending order, and idx[0] is the predicted class
-# print('sum of probabilities: %.0f'%torch.sum(probs).numpy())
-# print('true class: ', class_names[label])
-# print('predicated class: ', class_names[idx[0].numpy()])
