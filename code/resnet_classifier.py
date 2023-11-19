@@ -3,6 +3,7 @@ from torchvision.models import resnet50, ResNet50_Weights
 from tqdm import tqdm
 import torch
 import os
+import matplotlib.pyplot as plt
 
 
 # TODO: Need to get/copy ResNet classifier
@@ -21,6 +22,7 @@ class FCModel(torch.nn.Module):
         self.linear1 = torch.nn.Linear(input_dim, 256)
         self.relu = torch.nn.ReLU()
         if num_classes == 2:
+            # TODO: Why 1 class for binary instead of 2 classes? (Ask)
             # self.linear2 = torch.nn.Linear(256, 1)
             self.linear2 = torch.nn.Linear(256, num_classes)
         else:
@@ -36,13 +38,12 @@ class FCModel(torch.nn.Module):
 
 
 class ResNetClassifier():
-    
     def __init__(self, 
                  data_loaders: dict,
                  num_labels: int, 
                  optimizer: str = "adam", 
                  learning_rate: float = 0.0001, 
-                 epoches: int = 30) -> None:
+                 epochs: int = 30) -> None:
         
         # Get/init train/validation data_loaders dict from data_loader()
         self.dataloaders = data_loaders
@@ -68,7 +69,9 @@ class ResNetClassifier():
         # This prevents PyTorch from calculating the gradients for those parameters and thus, 
         # doesn’t update them.
         for param in self.model.parameters():
-            param.requires_grad = False
+            # NOTE: Set to true to test out cam.py
+            # param.requires_grad = False
+            param.requires_grad = True
 
         for param in self.model.fc.parameters():
             param.requires_grad = True
@@ -101,8 +104,8 @@ class ResNetClassifier():
             },
         }
 
-        # Set number of epoches for training
-        self.epoches = epoches
+        # Set number of epochs for training
+        self.epochs = epochs
 
     def train(self) -> None:
         """
@@ -111,7 +114,7 @@ class ResNetClassifier():
         """
         
         # Loop over all the epochs
-        for epoch in range(self.epoches):
+        for epoch in range(self.epochs):
             
             # Define a dictionary, similar to the one we defined earlier, to keep track of the metrics for the current epoch.
             ep_metrics = {
@@ -170,13 +173,54 @@ class ResNetClassifier():
                 self.metrics[phase]['loss'].append(ep_loss)
                 self.metrics[phase]['accuracy'].append(ep_accuracy)
 
-    def save(self, filename: str, file_type: str = ".pth", save_to_dir: str = "./models"):
+    def graph(self, save_to_dir: str = "./graphs/resnet_graphs"):
+        """
+        Show graphs for Loss and Accuracy for both training and validation
+        """
+
+        # Get epochs
+        epochs_range = range(0, self.epochs)
+
+        # Show graph of training and validation accuracies
+        train_acc = self.metrics['train']['accuracy']
+        val_acc = self.metrics['val']['accuracy']
+
+        # Create accuracy graph
+        plt.figure()
+        plt.plot(epochs_range, train_acc, 'g', label="Training Accuracy")
+        plt.plot(epochs_range, val_acc, 'b', label="Validation Accuracy")
+        plt.title('Training and Validation Accuracy')
+        plt.xlabel('Epochs')
+        plt.ylabel('Accuracy')
+        plt.legend()
+        # plt.show()
+        plt.savefig(f'{save_to_dir}/ResNet_Accuracy.png')
+        plt.close()
+
+        # Show graph of training and validation accuracies
+        train_loss = self.metrics['train']['loss']
+        val_loss = self.metrics['val']['loss']
+
+        # Create accuracy graph
+        plt.figure()
+        plt.plot(epochs_range, train_loss, 'g', label="Training Loss")
+        plt.plot(epochs_range, val_loss, 'b', label="Validation Loss")
+        plt.title('Training and Validation Loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend()
+        # plt.show()
+        plt.savefig(f'{save_to_dir}/ResNet_Loss.png')
+        plt.close()
+
+    def save(self, filename: str, file_type: str = ".h5", save_to_dir: str = "./models"):
         """
         Save trained model/data into a file
         :param filename: name of file to save as
-        :param file_type: type of file to save as (default: .pth)
+        :param file_type: type of file to save as (default: .h5)
         :param save_to_dir: location of where to save (default: models folder)
         """
+
         # Validate save_to_dir; if it does not exist, create save_to_dir
         if not os.path.exists(save_to_dir):
             try:  
@@ -190,57 +234,11 @@ class ResNetClassifier():
         # Save training data
         torch.save(
             {
-                'epoch': self.epoches,
+                'epoch': self.epochs,
                 'model_state_dict': self.model.state_dict(),
+                'model': self.model,
                 'optimizer_state_dict': self.optimizer.state_dict(),
                 'metrics': self.metrics,
             }, 
 	        save_to_path)
-
-
-# Old Function: Ignore
-def loss_function(num_labels):
-    # Initialize the model with its pretrained weights (init weights?)
-    model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
-
-    # Use GPU if available
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device)
-
-    # You may also want to freeze parameters of the pretrained network rather than 
-    # fine-tune the entire network. 
-    # To do this, we can simply set the requires_grad attribute of all the parameters 
-    # (except the new parameters) to False. 
-    # This prevents PyTorch from calculating the gradients for those parameters and thus, 
-    # doesn’t update them.
-    for param in model.parameters():
-        param.requires_grad = False
-
-    for param in model.fc.parameters():
-        param.requires_grad = True
-
-    # Define loss function
-    if num_labels == 2:
-        # Binary Cross Entropy Loss for 2 classes (Amherst vs. Non-Amherst)
-        criterion = torch.nn.BCELoss()
-    else:
-        # Cross Entropy Loss for multiple classes (Amherst vs. City1 vs. City2 vs. ...)
-        # TODO: Do this later
-        criterion = torch.nn.CrossEntropyLoss()
-
-    # Define optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-
-    # Training classifier model
-    metrics = {
-        'train': {
-            'loss': [], 'accuracy': []
-        },
-        'val': {
-            'loss': [], 'accuracy': []
-        },
-    }
-
-    return 0
-
 

@@ -1,5 +1,6 @@
+from cam import ClassActivationMap
 from resnet_classifier import ResNetClassifier
-from process_data import data_loader
+from process_data import data_loader, extract_dataset
 
 # Main function
 def main():
@@ -9,18 +10,38 @@ def main():
     nonbinary_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
 
     # Extract and process data from data_loader
-    extracted_dataloader, dataset_info = data_loader(dataset_dir=binary_dir)
+    extracted_dataloader, dataset_info, val_dataset_imgs = data_loader(dataset_dir=binary_dir)
 
-    # Train data
-    resnet = ResNetClassifier(
-        data_loaders=extracted_dataloader,
-        num_labels=len(dataset_info.class_lbl),
-        epoches=3
-    )
-    resnet.train()
+    # Get list of validation datasets
+    val_dataset_imgs = val_dataset_imgs[50:80]
 
-    # TODO: Save training data in some file (Saves time)
-    resnet.save(filename="model_two_class_v1")
+    # Switch on whether to enable training or otherwise
+    model_name = "model_binary_3cities_20epochs_nograd"
+    if True:
+        # Train data
+        resnet = ResNetClassifier(
+            data_loaders=extracted_dataloader,
+            num_labels=len(dataset_info.class_lbl),
+            epochs=20
+        )
+        resnet.train()
+
+        # Great and save charts
+        resnet.graph()
+
+        # Save training data in some file (Saves time)
+        resnet.save(filename=model_name)
+    
+    # Run CAM
+    sample_imgs = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset/Amherst/CS682-1373-Pt9"
+    cam = ClassActivationMap()
+    cam.set_image_paths(val_dataset_imgs)
+    # cam.set_image_batch(val_data, [0, 1])
+    # cam.extract_imgs(dir=sample_imgs, num_imgs=50)
+    cam.extract_model(file_name=model_name)
+    cam.run()
+    cam.graph()
+    print("------------------ FINISHED ------------------")
 
 
 if __name__ == "__main__":

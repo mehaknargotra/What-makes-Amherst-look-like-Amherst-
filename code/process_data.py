@@ -157,17 +157,23 @@ def data_loader(dataset_dir: str):
     :param save_to_dir: Location of where to save numpy array dataset (default is "dataset" folder)
     Note: Use np.load('data.npy') to extract data
     """
+    print("Running Data Loader...")
+
     # Define transformer
-    # NOTE: The transform variable created above is basically a function. 
     # Calling tranform(image) would return an image which is an augmented version of the input image.
+    # TODO: Data Augmentation in transform doc
     transform = transforms.Compose([
         transforms.Resize((128, 128)),
-        transforms.RandomHorizontalFlip(p=0.5)
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=10),
+        transforms.RandomRotation(degrees=20),
+        transforms.RandomRotation(degrees=40),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
     # Define dataset
-    train_dataset = ImageFolder(root=dataset_dir, transform=transform)
-    print("train_dataset:", train_dataset)
+    # train_dataset = ImageFolder(root=dataset_dir, transform=transform)
+    # print("train_dataset:", train_dataset)
 
     # Instantiate dataset object
     dataset = CustomDataset(root_dir=f'{dataset_dir}/', transform=transform)
@@ -182,20 +188,26 @@ def data_loader(dataset_dir: str):
     # Use random_split to split dataset
     train_set, val_set = torch.utils.data.random_split(dataset, split_sizes)
 
+    # Get list of validation images dataset (Needed to run CAM on)
+    val_img_list = [dataset.image_paths[i] for i in tuple(val_set.indices)]
+
     # Create dataloaders
     dataloaders = {
         "train": DataLoader(train_set, batch_size=16, shuffle=True),
-        "val": DataLoader(val_set, batch_size=16, shuffle=False)
+        "val": DataLoader(val_set, batch_size=16, shuffle=False),
     }
 
-    print(dataloaders)
-    return dataloaders, dataset
+    print("Data loading successful!")
+    return dataloaders, dataset, val_img_list
 
-# # Directories for binary and non-binary datasets
-# binary_dir = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset"
-# nonbinary_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
 
-# # This runs the data_loader code
-# extracted_data = data_loader(
-#     dataset_dir = binary_dir
-#     )
+def extract_dataset(data_loader: DataLoader):
+    """
+    Extract images from DataLoader (can be used for either training or validation data)
+    """
+    dataset_list = []
+    for images, labels in data_loader:
+        dataset_list.append(images)
+    # print("Finished extracting dataloader")
+
+    return dataset_list
