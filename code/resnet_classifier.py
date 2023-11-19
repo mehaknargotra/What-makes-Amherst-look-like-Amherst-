@@ -52,7 +52,6 @@ class ResNetClassifier():
         self.num_labels = num_labels
 
         # Initialize the model with its pretrained weights (init weights?)
-        # TODO: Fine-tuning ResNet50 on custom dataset
         self.model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
 
         # Add FC Layer
