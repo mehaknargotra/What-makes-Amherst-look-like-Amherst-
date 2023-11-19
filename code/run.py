@@ -1,6 +1,6 @@
 from cam import ClassActivationMap
 from resnet_classifier import ResNetClassifier
-from process_data import data_loader, extract_dataset
+from process_data import data_loader
 
 # Main function
 def main():
@@ -25,6 +25,8 @@ def main():
         resnet = ResNetClassifier(
             data_loaders=extracted_dataloader,
             num_labels=len(dataset_info.class_lbl),
+            optimizer="adam",
+            learning_rate=0.01, 
             epochs=max_epochs
         )
         resnet.train()

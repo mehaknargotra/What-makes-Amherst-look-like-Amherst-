@@ -22,7 +22,6 @@ from torchvision.io import read_image, ImageReadMode
 #   2.3. Run small test (small batch) - No regularizer, Test to see if model can overfit on small set
 #   2.4. Start training - Adjust parameters (regularizer, learning rate, etc.)
 
-
 # TODO:
 # Try two versions of classifications: 
 # - Keep non-Amherst cities separate
@@ -34,60 +33,6 @@ from torchvision.io import read_image, ImageReadMode
 # Loss Function
 # Binary Cross-Entropy Loss for two classes/labels (Amherst vs. Non-Amherst) 
 # Cross-Entropy Loss for multiple classes/labels (Amherst vs. NY vs. etc.)
-
-
-
-def create_dataset(dataset_dir: str, dataset_type: str, save_to_name: str, save_to_dir: str="./dataset"):
-    """
-    Extract images of type dataset_type from dataset, convert to numpy array, and save/store as .npy file
-    :param dataset_dir: Location of where images are
-    :param dataset_type: Filetype to search for
-    :param save_to_name: Name of dataset file to save as
-    :param save_to_dir: Location of where to save numpy array dataset (default is "dataset" folder)
-    Note: Use np.load('data.npy') to extract data
-    """
-
-    # Read data
-    images = glob.glob(f"{dataset_dir}/**/*{dataset_type}", recursive=True) 
-    print(f"Images found: {len(images)}")
-
-    # Loop through all images found
-    print("Loading data...")
-    img_data_list = []
-    for img in tqdm(images):
-        # Get image
-        # TODO: Replace torchvision.tranforms
-        # Adaptive average pooling = Could be used to do resizing
-        get_img = cv2.imread(img)
-
-        # Convert image to numpy array
-        data = np.asarray(get_img) # Should be a shape of (H, W, C)
-
-        # Reshape to (1, H, W, C) for concatenation
-        data = np.reshape(data, (1, data.shape[0], data.shape[1], data.shape[2])) 
-        
-        # Add to list
-        img_data_list.append(data)
-    print("Data Collected")
-
-    # Concatenate list of image data arrays into one whole numpy array
-    if len(img_data_list) == 0:
-        raise Exception("No images found/converted to np.array")
-    print(f"Image Shape: {img_data_list[0].shape}")
-    img_dataset = np.concatenate(img_data_list, axis=0)
-    print(f"Numpy Array Dataset Created: {img_dataset.shape}") # (N, H, W, C)
-    
-    # Save to npy file
-    save_to_path = f'{save_to_dir}/{save_to_name}.npy'
-    np.save(save_to_path, img_dataset)
-    print(f"Data saved to: {save_to_path}")
-
-
-# create_dataset(
-#     dataset_dir = "/Users/Preston/CS-682/Final_Project/dataset/Amherst",
-#     dataset_type = ".jpg",
-#     save_to_name = "Amherst"
-#     )
 
 
 class CustomDataset(Dataset):
@@ -171,10 +116,6 @@ def data_loader(dataset_dir: str):
         # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    # Define dataset
-    # train_dataset = ImageFolder(root=dataset_dir, transform=transform)
-    # print("train_dataset:", train_dataset)
-
     # Instantiate dataset object
     dataset = CustomDataset(root_dir=f'{dataset_dir}/', transform=transform)
 
@@ -208,6 +149,6 @@ def extract_dataset(data_loader: DataLoader):
     dataset_list = []
     for images, labels in data_loader:
         dataset_list.append(images)
-    # print("Finished extracting dataloader")
+    print("Finished extracting dataloader")
 
     return dataset_list
