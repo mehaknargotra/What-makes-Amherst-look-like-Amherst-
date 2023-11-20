@@ -9,43 +9,59 @@ def main():
     binary_dir = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset"
     nonbinary_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
 
+    # Boolean switch to use binary or nonbinary data
+    use_binary = True
+
     # Extract and process data from data_loader
-    extracted_dataloader, dataset_info, val_dataset_imgs = data_loader(dataset_dir=binary_dir)
+    if use_binary:
+        extracted_dataloader, dataset_info, val_dataset_imgs = data_loader(dataset_dir=binary_dir)
+    else:
+        extracted_dataloader, dataset_info, val_dataset_imgs = data_loader(dataset_dir=nonbinary_dir)
 
     # Get list of validation datasets (Specifically filter for Amherst-only validation)
     val_dataset_imgs = [path for path in val_dataset_imgs if '/Amherst/' in path]
+    
     # Set number of images to try out on in validation set
     val_dataset_imgs = val_dataset_imgs[:40]
 
+    # Set number of epochs
+    max_epochs = 5
+
+    # Set optimizer name
+    optm = "sgd"
+    # optm = "adam"
+
+    # Set suffix name for model and graphs
+    if use_binary:
+        suffix_str = f"bin_{optm}_{16}cit_{max_epochs}ephs"
+    else:
+        suffix_str = f"nonbin_{optm}_{16}cit_{max_epochs}ephs"
+
     # Switch on whether to enable training or otherwise
-    max_epochs = 20
-    model_name = f"model_binary_16cities_{max_epochs}epochs_nograd"
+    model_name = f"model_{suffix_str}"
     if True:
         # Train data
         resnet = ResNetClassifier(
             data_loaders=extracted_dataloader,
             num_labels=len(dataset_info.class_lbl),
-            optimizer="adam",
+            optimizer=optm,
             learning_rate=0.01, 
             epochs=max_epochs
         )
         resnet.train()
 
         # Great and save charts
-        resnet.graph()
+        resnet.graph(suffix=suffix_str)
 
         # Save training data in some file (Saves time)
         resnet.save(filename=model_name)
     
     # Run CAM
-    # sample_imgs = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset/Amherst/CS682-1373-Pt9"
     cam = ClassActivationMap()
     cam.set_image_paths(val_dataset_imgs)
-    # cam.set_image_batch(val_data, [0, 1])
-    # cam.extract_imgs(dir=sample_imgs, num_imgs=50)
     cam.extract_model(file_name=model_name)
     cam.run()
-    cam.graph()
+    cam.graph(file_suffix=suffix_str)
     print("\n------------------ FINISHED ------------------")
 
 

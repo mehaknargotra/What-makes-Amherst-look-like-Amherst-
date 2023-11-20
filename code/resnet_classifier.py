@@ -111,6 +111,7 @@ class ResNetClassifier():
         Training code from following link:
         https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
         """
+        print("\n------------------ BEGIN TRAINING ------------------")
         
         # Loop over all the epochs
         for epoch in range(self.epochs):
@@ -124,7 +125,7 @@ class ResNetClassifier():
 
             # Do both training and validation for each epoch.
             for phase in ['train', 'val']:
-                print(f'-------- {phase} --------')
+                print(f'------------ {phase} ------------')
                 
                 # Loop over the batches of data.
                 # Each batch in the dataloader is a 2-tuple since our custom dataset has 2 outputs (the image and the label)
@@ -172,9 +173,10 @@ class ResNetClassifier():
                 self.metrics[phase]['loss'].append(ep_loss)
                 self.metrics[phase]['accuracy'].append(ep_accuracy)
 
-    def graph(self, save_to_dir: str = "./graphs/resnet_graphs"):
+    def graph(self, suffix: str, save_to_dir: str = "./graphs/resnet_graphs"):
         """
         Show graphs for Loss and Accuracy for both training and validation
+        :param suffix: detail of suffix for file name
         """
 
         # Get epochs
@@ -188,12 +190,12 @@ class ResNetClassifier():
         plt.figure()
         plt.plot(epochs_range, train_acc, 'g', label="Training Accuracy")
         plt.plot(epochs_range, val_acc, 'b', label="Validation Accuracy")
-        plt.title('Training and Validation Accuracy')
+        plt.title(f'Training and Validation Accuracy ({suffix})')
         plt.xlabel('Epochs')
         plt.ylabel('Accuracy')
         plt.legend()
         # plt.show()
-        plt.savefig(f'{save_to_dir}/ResNet_Accuracy.png')
+        plt.savefig(f'{save_to_dir}/ResNet_Accuracy_{suffix}.png')
         plt.close()
 
         # Show graph of training and validation accuracies
@@ -204,12 +206,12 @@ class ResNetClassifier():
         plt.figure()
         plt.plot(epochs_range, train_loss, 'g', label="Training Loss")
         plt.plot(epochs_range, val_loss, 'b', label="Validation Loss")
-        plt.title('Training and Validation Loss')
+        plt.title(f'Training and Validation Loss ({suffix})')
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
         plt.legend()
         # plt.show()
-        plt.savefig(f'{save_to_dir}/ResNet_Loss.png')
+        plt.savefig(f'{save_to_dir}/ResNet_Loss_{suffix}.png')
         plt.close()
 
     def save(self, filename: str, file_type: str = ".h5", save_to_dir: str = "./models"):

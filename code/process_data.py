@@ -102,7 +102,7 @@ def data_loader(dataset_dir: str):
     :param save_to_dir: Location of where to save numpy array dataset (default is "dataset" folder)
     Note: Use np.load('data.npy') to extract data
     """
-    print("Running Data Loader...")
+    print("\n------------------ RUNNING DATA LOADER ------------------")
 
     # Define transformer
     # Calling tranform(image) would return an image which is an augmented version of the input image.
@@ -114,6 +114,7 @@ def data_loader(dataset_dir: str):
         transforms.RandomRotation(degrees=20),
         transforms.RandomRotation(degrees=40),
         # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        # TODO: Try "trimming" out background sky (center)
     ])
 
     # Instantiate dataset object

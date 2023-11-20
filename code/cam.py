@@ -106,7 +106,7 @@ class ClassActivationMap():
         """
         Run CAM on model
         """
-        print("Running CAM ...")
+        print("\n------------------ RUNNING CAM ------------------")
 
         if len(self.image_paths) > 0:
             # Loop through for every image in list
@@ -133,9 +133,11 @@ class ClassActivationMap():
                     # Retrieve the CAM by passing the class index and the model output
                     self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
 
-    def graph(self, save_to_dir: str = "./graphs/cam_graphs"):
+    def graph(self, file_suffix: str, save_to_dir: str = "./graphs/cam_graphs"):
         """
         Show heatmap overlaid on top of all images in list
+        :param file_suffix: string suffix for graph file names
+        :param save_to_dir: location of where to save graphs in
         """
         print("Graphing ...")
 
@@ -155,4 +157,4 @@ class ClassActivationMap():
             plt.imshow(result)
             plt.axis('off')
             plt.tight_layout()
-            plt.savefig(f'{save_to_dir}/CAM_V2_{idx}.png')
+            plt.savefig(f'{save_to_dir}/CAM_{file_suffix}_{idx}.png')
