@@ -28,14 +28,14 @@ def main():
     max_epochs = 5
 
     # Set optimizer name
-    optm = "sgd"
-    # optm = "adam"
+    # optm = "sgd"
+    optm = "adam"
 
     # Set suffix name for model and graphs
     if use_binary:
-        suffix_str = f"bin_{optm}_{16}cit_{max_epochs}ephs"
+        suffix_str = f"bin_{optm}_{16}cit_{max_epochs}ephs_norm"
     else:
-        suffix_str = f"nonbin_{optm}_{16}cit_{max_epochs}ephs"
+        suffix_str = f"nonbin_{optm}_{16}cit_{max_epochs}ephs_norm"
 
     # Switch on whether to enable training or otherwise
     model_name = f"model_{suffix_str}"
