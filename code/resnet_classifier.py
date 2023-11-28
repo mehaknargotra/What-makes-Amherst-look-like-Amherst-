@@ -1,5 +1,5 @@
 import numpy as np
-from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import resnet50, ResNet50_Weights, resnet101, ResNet101_Weights, resnet152, ResNet152_Weights
 from tqdm import tqdm
 import torch
 import os
@@ -21,12 +21,13 @@ class FCModel(torch.nn.Module):
 
         self.linear1 = torch.nn.Linear(input_dim, 256)
         self.relu = torch.nn.ReLU()
-        if num_classes == 2:
-            # TODO: Why 1 class for binary instead of 2 classes? (Ask)
-            # self.linear2 = torch.nn.Linear(256, 1)
-            self.linear2 = torch.nn.Linear(256, num_classes)
-        else:
-            self.linear2 = torch.nn.Linear(256, num_classes)
+        self.linear2 = torch.nn.Linear(256, num_classes)
+        # if num_classes == 2:
+        #     # TODO: Why 1 class for binary instead of 2 classes? (Ask)
+        #     # self.linear2 = torch.nn.Linear(256, 1)
+        #     self.linear2 = torch.nn.Linear(256, num_classes)
+        # else:
+        #     self.linear2 = torch.nn.Linear(256, num_classes)
         self.softmax = torch.nn.Sigmoid()
 
     def forward(self, x):
@@ -52,7 +53,9 @@ class ResNetClassifier():
         self.num_labels = num_labels
 
         # Initialize the model with its pretrained weights (init weights?)
-        self.model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+        # self.model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+        # self.model = resnet101(weights=ResNet101_Weights.IMAGENET1K_V1)
+        self.model = resnet152(weights=ResNet152_Weights.IMAGENET1K_V1)
 
         # Add FC Layer
         self.model.fc = FCModel(input_dim=2048, num_classes=self.num_labels)
