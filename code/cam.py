@@ -139,6 +139,11 @@ class ClassActivationMap():
         :param file_suffix: string suffix for graph file names
         :param save_to_dir: location of where to save graphs in
         """
+        # Create directory/folder for graph data
+        save_to_dir = os.path.join(save_to_dir, f"CAM_{file_suffix}")
+        if not os.path.exists(save_to_dir):
+            os.mkdir(save_to_dir)
+
         print("Graphing ...")
 
         # Loop through for every image in list

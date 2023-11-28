@@ -13,13 +13,13 @@ def main():
     # Code to identify Amherst features
     identify_amherst(
         dataset_dir=data_dir,
-        use_binary=False,
-        num_cities=19,
+        use_binary=True,
+        num_cities=16,
         num_val_imgs=30,
-        enable_training=True,
-        max_epochs=5,
+        enable_training=False,
+        max_epochs=10,
         optim="adam",
-        learning_rate=0.001,
+        learning_rate=0.0001,
         cam_type="reg"
     )
 
