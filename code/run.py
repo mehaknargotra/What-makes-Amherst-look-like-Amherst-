@@ -31,11 +31,16 @@ def main():
     # optm = "sgd"
     optm = "adam"
 
+    # Learning rate
+    lr = 0.001
+
     # Set suffix name for model and graphs
     if use_binary:
-        suffix_str = f"bin_{optm}_{16}cit_{max_epochs}ephs_norm"
+        suffix_str = f"bin_{optm}_{16}cit_{max_epochs}ephs_norm_lr{lr}"
     else:
-        suffix_str = f"nonbin_{optm}_{16}cit_{max_epochs}ephs_norm"
+        suffix_str = f"nonbin_{optm}_{16}cit_{max_epochs}ephs_norm_lr{lr}"
+
+    print(f"CONFIG: {suffix_str}")
 
     # Switch on whether to enable training or otherwise
     model_name = f"model_{suffix_str}"
@@ -45,7 +50,7 @@ def main():
             data_loaders=extracted_dataloader,
             num_labels=len(dataset_info.class_lbl),
             optimizer=optm,
-            learning_rate=0.01, 
+            learning_rate=lr, 
             epochs=max_epochs
         )
         resnet.train()

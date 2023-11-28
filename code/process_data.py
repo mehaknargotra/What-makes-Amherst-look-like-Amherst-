@@ -114,7 +114,6 @@ def data_loader(dataset_dir: str):
         transforms.RandomRotation(degrees=20),
         transforms.RandomRotation(degrees=40),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        # TODO: Try "trimming" out background sky (center)
     ])
 
     # Instantiate dataset object
