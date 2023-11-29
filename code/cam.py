@@ -113,42 +113,42 @@ class ClassActivationMap():
                 input_tensor = test_transforms(img.type(torch.FloatTensor))
                 
                 if cam_type == 1:
-                    with SmoothGradCAMpp(self.model) as cam_extractor:
+                    with SmoothGradCAMpp(self.model, 'layer4') as cam_extractor:
                         # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
                         
                         # Retrieve the CAM by passing the class index and the model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
                 elif cam_type == 2:
-                    with GradCAMpp(self.model) as cam_extractor:
+                    with GradCAMpp(self.model, 'layer4') as cam_extractor:
                         # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
                         
                         # Retrieve the CAM by passing the class index and the model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
                 elif cam_type == 3:
-                    with CAM(self.model) as cam_extractor:
+                    with CAM(self.model, 'layer4') as cam_extractor:
                         # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
                         
                         # Retrieve the CAM by passing the class index and the model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
                 elif cam_type == 4:
-                    with ScoreCAM(self.model) as cam_extractor:
+                    with ScoreCAM(self.model, 'layer4') as cam_extractor:
                         # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
                         
                         # Retrieve the CAM by passing the class index and the model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
                 elif cam_type == 5:
-                    with SSCAM(self.model) as cam_extractor:
+                    with SSCAM(self.model, 'layer4') as cam_extractor:
                         # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
                         
                         # Retrieve the CAM by passing the class index and the model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
                 else:
-                    with ISCAM(self.model) as cam_extractor:
+                    with ISCAM(self.model, 'layer4') as cam_extractor:
                         # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
                         
