@@ -270,11 +270,11 @@ def demo2(image_paths, output_dir, model, cuda):
     # Model
     # model = models.resnet152(pretrained=True)
     model.to(device)
-    model.eval()
+    # model.eval()
 
     # The four residual layers
     target_layers = ["relu", "layer1", "layer2", "layer3", "layer4"]
-    target_class = 16  # "bull mastif"
+    target_class = 1  # "bull mastif"
 
     # Images
     images, raw_images = load_images(image_paths)

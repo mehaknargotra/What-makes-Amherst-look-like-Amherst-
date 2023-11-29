@@ -1,4 +1,4 @@
-import numpy as np
+# import numpy as np
 import os
 import torch
 import glob
@@ -6,7 +6,7 @@ import glob
 from torchvision.io.image import read_image
 from torchvision.transforms.functional import normalize, resize, to_pil_image
 from torchvision.models import resnet18
-from torchcam.methods import SmoothGradCAMpp
+from torchcam.methods import SmoothGradCAMpp, GradCAMpp, CAM, ScoreCAM, SSCAM, ISCAM
 from torchvision import transforms
 
 import matplotlib.pyplot as plt
@@ -36,28 +36,6 @@ class ClassActivationMap():
     def set_image_paths(self, img_path):
         self.image_paths = img_path
     
-    def extract_imgs(self, dir: str, num_imgs: int = -1):
-        """
-        Extract images to test on CAM
-        :param dir: directory to extract images from (specifically looking for Amherst)
-        :param num_imgs: number of image dirs to extract into a list (If -1, extract all)
-        """
-
-        # Check that dir exists
-        if not os.path.exists(dir):
-            raise Exception(f"Directory {dir} not found")
-        
-        # Extract list of image dirs
-        print("Extracting images ...")
-        self.image_paths = []
-        for ext in ['png', 'jpg']:
-            glob_path = f"{dir}/**/*.{ext}"
-            self.image_paths += glob.glob(glob_path, recursive=True)
-
-        # Extract num_imgs if specified
-        if num_imgs > 0:
-            self.image_paths = self.image_paths[-num_imgs:]
-
     def extract_model(self, file_name: str, dir: str = "./models", file_type: str = ".h5"):
         """
         Extract model saved inside "model" folder
@@ -102,9 +80,17 @@ class ClassActivationMap():
         # print("dataset_list:", dataset_list)
         self.dataset = dataset_list
 
-    def run(self):
+    def run(self, cam_type=1):
         """
-        Run CAM on model
+        Run CAM on model (Smooth Grad CAM)
+
+        :param cam_type: Type of CAM to run 
+            1: SmoothGradCAMpp
+            2: GradCAMpp
+            3: CAM 
+            4: ScoreCAM
+            5: SSCAM
+            6: ISCAM
         """
         print("\n------------------ RUNNING CAM ------------------")
 
@@ -126,13 +112,49 @@ class ClassActivationMap():
                 # img_arr = img.detach().cpu().numpy()
                 input_tensor = test_transforms(img.type(torch.FloatTensor))
                 
-                with SmoothGradCAMpp(self.model) as cam_extractor:
-                    # Preprocess your data and feed it to the model
-                    out = self.model(input_tensor.unsqueeze(0))
-                    
-                    # Retrieve the CAM by passing the class index and the model output
-                    self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
-
+                if cam_type == 1:
+                    with SmoothGradCAMpp(self.model) as cam_extractor:
+                        # Preprocess your data and feed it to the model
+                        out = self.model(input_tensor.unsqueeze(0))
+                        
+                        # Retrieve the CAM by passing the class index and the model output
+                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
+                elif cam_type == 2:
+                    with GradCAMpp(self.model) as cam_extractor:
+                        # Preprocess your data and feed it to the model
+                        out = self.model(input_tensor.unsqueeze(0))
+                        
+                        # Retrieve the CAM by passing the class index and the model output
+                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
+                elif cam_type == 3:
+                    with CAM(self.model) as cam_extractor:
+                        # Preprocess your data and feed it to the model
+                        out = self.model(input_tensor.unsqueeze(0))
+                        
+                        # Retrieve the CAM by passing the class index and the model output
+                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
+                elif cam_type == 4:
+                    with ScoreCAM(self.model) as cam_extractor:
+                        # Preprocess your data and feed it to the model
+                        out = self.model(input_tensor.unsqueeze(0))
+                        
+                        # Retrieve the CAM by passing the class index and the model output
+                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
+                elif cam_type == 5:
+                    with SSCAM(self.model) as cam_extractor:
+                        # Preprocess your data and feed it to the model
+                        out = self.model(input_tensor.unsqueeze(0))
+                        
+                        # Retrieve the CAM by passing the class index and the model output
+                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
+                else:
+                    with ISCAM(self.model) as cam_extractor:
+                        # Preprocess your data and feed it to the model
+                        out = self.model(input_tensor.unsqueeze(0))
+                        
+                        # Retrieve the CAM by passing the class index and the model output
+                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
+    
     def graph(self, file_suffix: str, save_to_dir: str = "./graphs/cam_graphs"):
         """
         Show heatmap overlaid on top of all images in list

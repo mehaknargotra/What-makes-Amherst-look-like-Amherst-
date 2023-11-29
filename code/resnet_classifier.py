@@ -53,9 +53,9 @@ class ResNetClassifier():
         self.num_labels = num_labels
 
         # Initialize the model with its pretrained weights (init weights?)
-        # self.model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+        self.model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
         # self.model = resnet101(weights=ResNet101_Weights.IMAGENET1K_V1)
-        self.model = resnet152(weights=ResNet152_Weights.IMAGENET1K_V1)
+        # self.model = resnet152(weights=ResNet152_Weights.IMAGENET1K_V1)
 
         # Add FC Layer
         self.model.fc = FCModel(input_dim=2048, num_classes=self.num_labels)

@@ -11,10 +11,7 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image, ImageReadMode
 
-
-# TODO: 
 # Follow these steps from "Lecture 8: Training NNs Part III"
-
 # 1. Read and normalize data (1 time; need to save and store as matrices)
 # 2. Choose architecture (ResNet, CNN, VIM Transformer)
 #   2.1. Disable regularization and check if loss is correct (log-likelihood)
@@ -28,7 +25,7 @@ from torchvision.io import read_image, ImageReadMode
 # - Combine all together as one label
 # Create data loader (try tonight) - Class that return N datasets
 # Pytorch custom dataloaders = train on custom datasets - custom image classifier 
-# (https://dilithjay.com/blog/custom-image-classifier-with-pytorch/)
+# SOURCE: https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
 
 # Loss Function
 # Binary Cross-Entropy Loss for two classes/labels (Amherst vs. Non-Amherst) 
@@ -113,7 +110,7 @@ def data_loader(dataset_dir: str):
         transforms.RandomRotation(degrees=10),
         transforms.RandomRotation(degrees=20),
         transforms.RandomRotation(degrees=40),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     ])
 
     # Instantiate dataset object
@@ -140,15 +137,3 @@ def data_loader(dataset_dir: str):
 
     print("Data loading successful!")
     return dataloaders, dataset, val_img_list
-
-
-def extract_dataset(data_loader: DataLoader):
-    """
-    Extract images from DataLoader (can be used for either training or validation data)
-    """
-    dataset_list = []
-    for images, labels in data_loader:
-        dataset_list.append(images)
-    print("Finished extracting dataloader")
-
-    return dataset_list

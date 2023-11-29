@@ -1,4 +1,5 @@
-from collections import Sequence
+from collections.abc import Sequence
+# from collections import Sequence (For Python 3.8?)
 
 import numpy as np
 import torch
