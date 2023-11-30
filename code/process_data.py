@@ -110,7 +110,8 @@ def data_loader(dataset_dir: str):
         transforms.RandomRotation(degrees=10),
         transforms.RandomRotation(degrees=20),
         transforms.RandomRotation(degrees=40),
-        transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        # transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
     # Instantiate dataset object
@@ -131,8 +132,8 @@ def data_loader(dataset_dir: str):
 
     # Create dataloaders
     dataloaders = {
-        "train": DataLoader(train_set, batch_size=16, shuffle=True),
-        "val": DataLoader(val_set, batch_size=16, shuffle=False),
+        "train": DataLoader(train_set, batch_size=32, shuffle=True),
+        "val": DataLoader(val_set, batch_size=32, shuffle=False),
     }
 
     print("Data loading successful!")

@@ -8,18 +8,18 @@ from process_data import data_loader
 def main():
 
     # Directories for binary and non-binary datasets
-    data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset"
-    # data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
+    # data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset"
+    data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
 
     # Code to identify Amherst features
     identify_amherst(
         dataset_dir=data_dir,
-        use_binary=True,
-        num_cities=19,
-        num_val_imgs=5,
-        enable_training=False,
-        max_epochs=5,
-        optim="adam",
+        use_binary=False,
+        num_cities=20,
+        num_val_imgs=0,
+        enable_training=True,
+        max_epochs=10,
+        optim="sgd",
         learning_rate=0.001,
         cam_type="smoothgradcam"
         # cam_type="gradcam"
@@ -29,13 +29,6 @@ def main():
         # cam_type="iscam"
     )
 
-import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import torch
-import torch.nn as nn
-from skimage.io import imread
-from skimage.transform import resize
 
 def identify_amherst(dataset_dir: str,
                      use_binary: bool = True,
@@ -69,7 +62,8 @@ def identify_amherst(dataset_dir: str,
     val_dataset_imgs = [path for path in val_dataset_imgs if '/Amherst/' in path]
     
     # Set number of images to try out on in validation set
-    val_dataset_imgs = val_dataset_imgs[:num_val_imgs]
+    if num_val_imgs > 0:
+        val_dataset_imgs = val_dataset_imgs[:num_val_imgs]
 
     # Set suffix name for model and graphs
     if use_binary:
