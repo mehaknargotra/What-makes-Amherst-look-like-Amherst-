@@ -12,22 +12,20 @@ def main():
     data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
 
     # Code to identify Amherst features
-    identify_amherst(
-        dataset_dir=data_dir,
-        use_binary=False,
-        num_cities=20,
-        num_val_imgs=0,
-        enable_training=True,
-        max_epochs=10,
-        optim="sgd",
-        learning_rate=0.001,
-        cam_type="smoothgradcam"
-        # cam_type="gradcam"
-        # cam_type="cam"
-        # cam_type="scorecam"
-        # cam_type="sscam"
-        # cam_type="iscam"
-    )
+    training_flag = False
+    for cam_name in ["smoothgradcam", "gradcam", "cam"]:
+        identify_amherst(
+            dataset_dir=data_dir,
+            use_binary=False,
+            num_cities=20,
+            num_val_imgs=100,
+            enable_training=training_flag,
+            max_epochs=10,
+            optim="adam",
+            learning_rate=0.001,
+            cam_type=cam_name
+        )
+        training_flag = False
 
 
 def identify_amherst(dataset_dir: str,

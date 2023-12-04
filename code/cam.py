@@ -6,7 +6,7 @@ import glob
 from torchvision.io.image import read_image
 from torchvision.transforms.functional import normalize, resize, to_pil_image
 from torchvision.models import resnet18
-from torchcam.methods import SmoothGradCAMpp, GradCAMpp, CAM, ScoreCAM, SSCAM, ISCAM
+from torchcam.methods import SmoothGradCAMpp, GradCAMpp, CAM
 from torchvision import transforms
 
 import matplotlib.pyplot as plt
@@ -14,14 +14,13 @@ from torchcam.utils import overlay_mask
 from tqdm import tqdm
 
 
-# TODO: Class Activation Mapping; Need to research and implement/test/tune
-# Will be running multiple combinations between CAM and the classifiers
+# Class Activation Mapping
 
 # Links/References:
 # https://github.com/topics/class-activation-map
-# *** https://medium.com/intelligentmachines/implementation-of-class-activation-map-cam-with-pytorch-c32f7e414923
-# *** https://github.com/frgfm/torch-cam
-# *** https://leslietj.github.io/2020/07/15/PyTorch-Implementation-of-Class-Activation-Map-CAM/
+# https://medium.com/intelligentmachines/implementation-of-class-activation-map-cam-with-pytorch-c32f7e414923
+# https://github.com/frgfm/torch-cam
+# https://leslietj.github.io/2020/07/15/PyTorch-Implementation-of-Class-Activation-Map-CAM/
 # https://github.com/frgfm/torch-cam/discussions/132
 
 
@@ -56,30 +55,6 @@ class ClassActivationMap():
         self.model = torch.load(model_path)['model']
         self.model.eval()
 
-    def set_image_batch(self, dataset_list: list, idx_range: list = None):
-        """
-        :param dataset_list: list of validation dataset from dataloader
-        Note: Dataset is of shape (N, C, H, W), where N = Number of Batches
-        :param idx_range: list of index range of where to start and stop with accessing dataset
-            If None, then do all
-        """
-        # Get batches of
-        if idx_range is not None:
-            batch_dataset = dataset_list[idx_range[0]:idx_range[1]]
-        else:
-            batch_dataset = dataset_list
-        
-        dataset_list = []
-        for batch in batch_dataset:
-            bat_split = list(torch.split(batch, 1, dim=0))
-            # print("bat_split:", bat_split)
-
-            dataset_list = [*dataset_list, *bat_split] 
-            # dataset_list.append(list(torch.squeeze(torch.split(batch, 1, dim=0))))
-
-        # print("dataset_list:", dataset_list)
-        self.dataset = dataset_list
-
     def run(self, cam_type=1):
         """
         Run CAM on model (Smooth Grad CAM)
@@ -87,10 +62,7 @@ class ClassActivationMap():
         :param cam_type: Type of CAM to run 
             1: SmoothGradCAMpp
             2: GradCAMpp
-            3: CAM 
-            4: ScoreCAM
-            5: SSCAM
-            6: ISCAM
+            3: CAM
         """
         print("\n------------------ RUNNING CAM ------------------")
 
@@ -104,13 +76,14 @@ class ClassActivationMap():
                 # Create transformer
                 test_transforms = transforms.Compose([
                     transforms.Resize(224),
-                    # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-                    ])
+                ])
 
                 # Preprocess it for your chosen model
-                # input_tensor = normalize(resize(img, (224, 224)) / 255., [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-                # img_arr = img.detach().cpu().numpy()
                 input_tensor = test_transforms(img.type(torch.FloatTensor))
+
+                # Switch between gpu or cpu
+                device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+                input_tensor = input_tensor.to(device)
                 
                 if cam_type == 1:
                     with SmoothGradCAMpp(self.model, 'layer4') as cam_extractor:
@@ -126,29 +99,8 @@ class ClassActivationMap():
                         
                         # Retrieve the CAM by passing the class index and the model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
-                elif cam_type == 3:
-                    with CAM(self.model, 'layer4') as cam_extractor:
-                        # Preprocess your data and feed it to the model
-                        out = self.model(input_tensor.unsqueeze(0))
-                        
-                        # Retrieve the CAM by passing the class index and the model output
-                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
-                elif cam_type == 4:
-                    with ScoreCAM(self.model, 'layer4') as cam_extractor:
-                        # Preprocess your data and feed it to the model
-                        out = self.model(input_tensor.unsqueeze(0))
-                        
-                        # Retrieve the CAM by passing the class index and the model output
-                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
-                elif cam_type == 5:
-                    with SSCAM(self.model, 'layer4') as cam_extractor:
-                        # Preprocess your data and feed it to the model
-                        out = self.model(input_tensor.unsqueeze(0))
-                        
-                        # Retrieve the CAM by passing the class index and the model output
-                        self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
                 else:
-                    with ISCAM(self.model, 'layer4') as cam_extractor:
+                    with CAM(self.model, 'layer4') as cam_extractor:
                         # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
                         
@@ -185,3 +137,4 @@ class ClassActivationMap():
             plt.axis('off')
             plt.tight_layout()
             plt.savefig(f'{save_to_dir}/CAM_{file_suffix}_{idx}.png')
+            plt.clf()

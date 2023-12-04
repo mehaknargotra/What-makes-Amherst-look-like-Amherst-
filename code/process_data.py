@@ -4,28 +4,18 @@ import torch
 from tqdm import tqdm
 import numpy as np
 import glob
-import cv2
 
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image, ImageReadMode
 
-# Follow these steps from "Lecture 8: Training NNs Part III"
-# 1. Read and normalize data (1 time; need to save and store as matrices)
-# 2. Choose architecture (ResNet, CNN, VIM Transformer)
-#   2.1. Disable regularization and check if loss is correct (log-likelihood)
-#   2.2. Increase regularizaiton and check if loss goes up 
-#   2.3. Run small test (small batch) - No regularizer, Test to see if model can overfit on small set
-#   2.4. Start training - Adjust parameters (regularizer, learning rate, etc.)
 
-# TODO:
 # Try two versions of classifications: 
-# - Keep non-Amherst cities separate
-# - Combine all together as one label
-# Create data loader (try tonight) - Class that return N datasets
-# Pytorch custom dataloaders = train on custom datasets - custom image classifier 
-# SOURCE: https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
+# - Keep non-Amherst cities separate (Non-binary dataset)
+# - Combine all together as one label (Binary dataset)
+
+# CODE REF: https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
 
 # Loss Function
 # Binary Cross-Entropy Loss for two classes/labels (Amherst vs. Non-Amherst) 
@@ -103,14 +93,12 @@ def data_loader(dataset_dir: str):
 
     # Define transformer
     # Calling tranform(image) would return an image which is an augmented version of the input image.
-    # TODO: Data Augmentation in transform doc
     transform = transforms.Compose([
         transforms.Resize((64, 64)),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation(degrees=10),
         transforms.RandomRotation(degrees=20),
         transforms.RandomRotation(degrees=40),
-        # transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 

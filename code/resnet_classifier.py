@@ -6,15 +6,14 @@ import os
 import matplotlib.pyplot as plt
 
 
-# TODO: Need to get/copy ResNet classifier
-# Links: 
+# ResNet classifier
+# LINKS/REFS: 
 # https://www.kaggle.com/code/toygarr/resnet-implementation-for-image-classification
 # https://datagen.tech/guides/computer-vision/resnet-50/#
 # https://pyimagesearch.com/2020/04/27/fine-tuning-resnet-with-keras-tensorflow-and-deep-learning/
 
 
-# Simple Fully-Connected model example
-# NOTE: We will be applied to our model.fc
+# Simple Fully-Connected model applied to our model.fc
 class FCModel(torch.nn.Module):
     def __init__(self, input_dim, num_classes=2):
         super(FCModel, self).__init__()
@@ -22,12 +21,6 @@ class FCModel(torch.nn.Module):
         self.linear1 = torch.nn.Linear(input_dim, 256)
         self.relu = torch.nn.ReLU()
         self.linear2 = torch.nn.Linear(256, num_classes)
-        # if num_classes == 2:
-        #     # TODO: Why 1 class for binary instead of 2 classes? (Ask)
-        #     # self.linear2 = torch.nn.Linear(256, 1)
-        #     self.linear2 = torch.nn.Linear(256, num_classes)
-        # else:
-        #     self.linear2 = torch.nn.Linear(256, num_classes)
         self.softmax = torch.nn.Sigmoid()
 
     def forward(self, x):
@@ -38,6 +31,7 @@ class FCModel(torch.nn.Module):
         return x
 
 
+# Class for ResNet Training
 class ResNetClassifier():
     def __init__(self, 
                  data_loaders: dict,
@@ -52,10 +46,8 @@ class ResNetClassifier():
         # Save number of labels/classes
         self.num_labels = num_labels
 
-        # Initialize the model with its pretrained weights (init weights?)
+        # Initialize the model with its pretrained weights
         self.model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
-        # self.model = resnet101(weights=ResNet101_Weights.IMAGENET1K_V1)
-        # self.model = resnet152(weights=ResNet152_Weights.IMAGENET1K_V1)
 
         # Add FC Layer
         self.model.fc = FCModel(input_dim=2048, num_classes=self.num_labels)
@@ -64,12 +56,7 @@ class ResNetClassifier():
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
 
-        # You may also want to freeze parameters of the pretrained network rather than 
-        # fine-tune the entire network. 
-        # To do this, we can simply set the requires_grad attribute of all the parameters 
-        # (except the new parameters) to False. 
-        # This prevents PyTorch from calculating the gradients for those parameters and thus, 
-        # doesn’t update them.
+        # Freeze parameters of the pretrained network rather than fine-tune the entire network. 
         for param in self.model.parameters():
             # NOTE: Set to true to test out cam.py
             # param.requires_grad = False
@@ -84,7 +71,6 @@ class ResNetClassifier():
             self.criterion = torch.nn.BCELoss()
         else:
             # Cross Entropy Loss for multiple classes (Amherst vs. City1 vs. City2 vs. ...)
-            # TODO: Do this later
             self.criterion = torch.nn.CrossEntropyLoss()
 
         # Define optimizer
@@ -96,7 +82,7 @@ class ResNetClassifier():
         else:
             raise Exception(f"Optimizer {optimizer} does not exist")
 
-        # Create metrics for training
+        # Create training and validation metrics for training (loss and accuracy)
         self.metrics = {
             'train': {
                 'loss': [], 'accuracy': []
@@ -111,7 +97,7 @@ class ResNetClassifier():
 
     def train(self) -> None:
         """
-        Training code from following link:
+        Training code built using following reference:
         https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
         """
         print("\n------------------ BEGIN TRAINING ------------------")
@@ -137,20 +123,20 @@ class ResNetClassifier():
                     # Reset the optimizer’s gradient to zero (else the gradient will get accumulated from previous batches)
                     self.optimizer.zero_grad()
 
-                    # If we’re in the training phase, we keep track of the gradients. 
-                    # If not, we don’t keep track of the gradient since it saves compute power and memory. In both cases
+                    # If in training phase, keep track of gradients 
+                    # If not, don’t keep track of gradient since it saves compute power and memory
                     with torch.set_grad_enabled(phase == 'train'):
                         
-                        # We run the images through the model and get the output
+                        # Run images through model and get predicted output
                         output = self.model(images.to(self.device))
                         
                         # Turn the labels into one-hot encoded vectors
                         ohe_label = torch.nn.functional.one_hot(labels, num_classes=self.num_labels)
 
-                        # Use the one-hot encoded labels to calculate the loss
+                        # Use one-hot encoded labels to calculate loss
                         loss = self.criterion(output, ohe_label.float().to(self.device))
 
-                        # Use argmax to get the predicted labels and use them with the ground truth labels to calculate the accuracies
+                        # Use argmax to get predicted labels and use them with ground truth labels to calculate accuracy
                         correct_preds = labels.to(self.device) == torch.argmax(output, dim=1)
                         accuracy = (correct_preds).sum()/len(labels)
 
@@ -171,8 +157,8 @@ class ResNetClassifier():
                 ep_loss = ep_metrics[phase]['loss']/ep_metrics[phase]['count']
                 ep_accuracy = ep_metrics[phase]['accuracy']/ep_metrics[phase]['count']
 
+                # Show and log loss and accuracy
                 print(f'Loss: {ep_loss}, Accuracy: {ep_accuracy}\n')
-
                 self.metrics[phase]['loss'].append(ep_loss)
                 self.metrics[phase]['accuracy'].append(ep_accuracy)
 
