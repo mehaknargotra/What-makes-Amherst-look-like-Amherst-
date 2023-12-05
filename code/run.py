@@ -8,24 +8,34 @@ from process_data import data_loader
 def main():
 
     # Directories for binary and non-binary datasets
-    # data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset"
-    data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
+    bin_data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset"
+    nonbin_data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
 
-    # Code to identify Amherst features
-    training_flag = False
-    for cam_name in ["smoothgradcam", "gradcam", "cam"]:
-        identify_amherst(
-            dataset_dir=data_dir,
-            use_binary=False,
-            num_cities=20,
-            num_val_imgs=100,
-            enable_training=training_flag,
-            max_epochs=10,
-            optim="adam",
-            learning_rate=0.001,
-            cam_type=cam_name
-        )
-        training_flag = False
+    for data_dir in [nonbin_data_dir]:
+
+        for opt in ["adam"]:
+
+            for epoch in [5, 10]:
+
+                # Code to identify Amherst features
+                training_flag = False
+                for cam_name in ["cam", "gradcam", "smoothgradcam"]:
+                    
+                    if (data_dir == bin_data_dir) and (opt == "sgd") and (epoch == 10):
+                        continue
+
+                    identify_amherst(
+                        dataset_dir=data_dir,
+                        use_binary=(data_dir == bin_data_dir),
+                        num_cities=20,
+                        num_val_imgs=100,
+                        enable_training=training_flag,
+                        max_epochs=epoch,
+                        optim=opt,
+                        learning_rate=0.001,
+                        cam_type=cam_name
+                    )
+                    training_flag = False
 
 
 def identify_amherst(dataset_dir: str,
@@ -69,7 +79,8 @@ def identify_amherst(dataset_dir: str,
     else:
         suffix_str = f"nonbin_{optim}_{num_cities}cit_{max_epochs}ephs_lr{learning_rate}"
 
-    print(f"CONFIGURATION: {suffix_str}")
+    print(f"\nCONFIGURATION: {suffix_str}")
+    print(f"CAM TYPE: {cam_type}\n")
 
     # Switch on whether to enable training or otherwise
     model_name = f"model_{suffix_str}"
@@ -100,67 +111,6 @@ def identify_amherst(dataset_dir: str,
         cam.run(2)
     elif cam_type.lower() == "cam":
         cam.run(3)
-    elif cam_type.lower() == "scorecam":
-        cam.run(4)
-    elif cam_type.lower() == "sscam":
-        cam.run(5)
-    elif cam_type.lower() == "iscam":
-        cam.run(6)
-    # elif cam_type.lower() == "grad_v2":
-    #     # Grad CAM (Version 2)
-    #     cam = GradCAMV2(name_suffix=suffix_str)
-    #     cam.set_image_paths(val_dataset_imgs)
-    #     cam.extract_model(file_name=model_name)
-    #     # cam.register_hooks()
-    #     # cam.process_and_compute_data()
-    #     # cam.register_hooks()
-    #     gradCamMethod(cam.model, cam.image_paths)
-    # elif cam_type.lower() == "grad_v3":
-        # cam = ClassActivationMap()
-        # cam.extract_model(file_name=model_name)
-        # cam.set_image_paths(val_dataset_imgs)
-        # device = "cuda" if torch.cuda.is_available() else "cpu"
-        # gcmodel = GradCamModel(model=cam.model).to(device)
-
-        # for img_pth in cam.image_paths:
-        #     img = imread(img_pth)
-        #     img = resize(img, (224,224), preserve_range = True)
-        #     img = np.expand_dims(img.transpose((2,0,1)),0)
-        #     img /= 255.0
-        #     get_mean = np.array([0.485, 0.456, 0.406]).reshape((1,3,1,1))
-        #     get_std = np.array([0.229, 0.224, 0.225]).reshape((1,3,1,1))
-        #     img = (img - get_mean) / get_std
-        #     inpimg = torch.from_numpy(img).to(device, torch.float32)
-
-        #     out, acts = gcmodel(inpimg)
-        #     acts = acts.detach().cpu()
-        #     if use_binary:
-        #         loss = nn.CrossEntropyLoss()(out,torch.from_numpy(np.array([1])).to(device))
-        #     else:
-        #         loss = nn.BCELoss()(out,torch.from_numpy(np.array([1])).to(device))
-        #     loss.backward()
-
-        #     grads = gcmodel.get_act_grads().detach().cpu()
-        #     pooled_grads = torch.mean(grads, dim=[0,2,3]).detach().cpu()
-
-        #     for i in range(acts.shape[1]):
-        #         acts[:,i,:,:] *= pooled_grads[i]
-
-        #     heatmap_j = torch.mean(acts, dim = 1).squeeze()
-        #     heatmap_j_max = heatmap_j.max(axis = 0)[0]
-        #     heatmap_j /= heatmap_j_max
-            
-        #     # Resize heatmap
-        #     heatmap_j = resize(heatmap_j, (224,224), preserve_range=True)
-
-        #     # Color mapping
-        #     cmap = mpl.cm.get_cmap('jet',256)
-        #     heatmap_j2 = cmap(heatmap_j,alpha = 0.2)
-
-        #     fig, axs = plt.subplots(1,1,figsize = (5,5))
-        #     axs.imshow((img*get_std+get_mean)[0].transpose(1,2,0))
-        #     axs.imshow(heatmap_j2)
-        #     plt.show()
     else:
         raise Exception("CAM type not supported")
     

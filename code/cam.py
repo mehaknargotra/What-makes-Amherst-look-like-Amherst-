@@ -7,6 +7,7 @@ from torchvision.io.image import read_image
 from torchvision.transforms.functional import normalize, resize, to_pil_image
 from torchvision.models import resnet18
 from torchcam.methods import SmoothGradCAMpp, GradCAMpp, CAM
+# from omnixai.explainers.vision.specific.gradcam.pytorch.gradcam import GradCAM
 from torchvision import transforms
 
 import matplotlib.pyplot as plt
@@ -75,7 +76,8 @@ class ClassActivationMap():
 
                 # Create transformer
                 test_transforms = transforms.Compose([
-                    transforms.Resize(224),
+                    transforms.Resize(256),
+                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                 ])
 
                 # Preprocess it for your chosen model
@@ -87,24 +89,18 @@ class ClassActivationMap():
                 
                 if cam_type == 1:
                     with SmoothGradCAMpp(self.model, 'layer4') as cam_extractor:
-                        # Preprocess your data and feed it to the model
+                        # Preprocess data and feed into model
                         out = self.model(input_tensor.unsqueeze(0))
                         
-                        # Retrieve the CAM by passing the class index and the model output
+                        # Retrieve CAM with class index and model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
                 elif cam_type == 2:
                     with GradCAMpp(self.model, 'layer4') as cam_extractor:
-                        # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
-                        
-                        # Retrieve the CAM by passing the class index and the model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
                 else:
                     with CAM(self.model, 'layer4') as cam_extractor:
-                        # Preprocess your data and feed it to the model
                         out = self.model(input_tensor.unsqueeze(0))
-                        
-                        # Retrieve the CAM by passing the class index and the model output
                         self.activation_map_list.append(cam_extractor(out.squeeze(0).argmax().item(), out))
     
     def graph(self, file_suffix: str, save_to_dir: str = "./graphs/cam_graphs"):

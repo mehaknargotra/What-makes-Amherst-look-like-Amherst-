@@ -1,5 +1,5 @@
 import os
-from PIL import Image
+# from PIL import Image
 import torch
 from tqdm import tqdm
 import numpy as np
