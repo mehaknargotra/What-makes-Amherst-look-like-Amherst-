@@ -1,13 +1,13 @@
-import numpy as np
-from torchvision.models import resnet50, ResNet50_Weights, resnet101, ResNet101_Weights, resnet152, ResNet152_Weights
+from torchvision.models import resnet50, ResNet50_Weights
 from tqdm import tqdm
 import torch
 import os
 import matplotlib.pyplot as plt
 
 
-# ResNet classifier
-# LINKS/REFS: 
+""" ResNet Classifier """
+
+# REFS: 
 # https://www.kaggle.com/code/toygarr/resnet-implementation-for-image-classification
 # https://datagen.tech/guides/computer-vision/resnet-50/#
 # https://pyimagesearch.com/2020/04/27/fine-tuning-resnet-with-keras-tensorflow-and-deep-learning/
@@ -56,10 +56,8 @@ class ResNetClassifier():
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
 
-        # Freeze parameters of the pretrained network rather than fine-tune the entire network. 
         for param in self.model.parameters():
-            # NOTE: Set to true to test out cam.py
-            # param.requires_grad = False
+            # Set to true to test out cam.py
             param.requires_grad = True
 
         for param in self.model.fc.parameters():
@@ -97,8 +95,8 @@ class ResNetClassifier():
 
     def train(self) -> None:
         """
-        Training code built using following reference:
-        https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
+        Train ResNet on dataset
+        REF: https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
         """
         print("\n------------------ BEGIN TRAINING ------------------")
         
@@ -116,11 +114,10 @@ class ResNetClassifier():
             for phase in ['train', 'val']:
                 print(f'------------ {phase} ------------')
                 
-                # Loop over the batches of data.
-                # Each batch in the dataloader is a 2-tuple since our custom dataset has 2 outputs (the image and the label)
+                # Loop over the batches of data for images and its labels
                 for images, labels in tqdm(self.dataloaders[phase]):
                     
-                    # Reset the optimizer’s gradient to zero (else the gradient will get accumulated from previous batches)
+                    # Reset optimizer’s gradient
                     self.optimizer.zero_grad()
 
                     # If in training phase, keep track of gradients 
@@ -141,23 +138,23 @@ class ResNetClassifier():
                         accuracy = (correct_preds).sum()/len(labels)
 
                     if phase == 'train':
-                        # Backpropagate through the loss and calculate the gradients
+                        # Backpropagate loss and calculate gradients
                         loss.backward()
 
-                        # Update weights as per the calculated gradients
+                        # Update weights
                         self.optimizer.step()
 
-                    # Keep track of the total accuracy, total loss, and batch count, 
-                    # since they can be used to calculate the accuracy and loss for the entire epoch.
+                    # Keep track of total accuracy, total loss, and batch count, 
+                    # Used to calculate accuracy and loss for entire epoch.
                     ep_metrics[phase]['loss'] += loss.item()
                     ep_metrics[phase]['accuracy'] += accuracy.item()
                     ep_metrics[phase]['count'] += 1
             
-                # Calculate the epoch loss and epoch accuracy, and update the overall metrics dictionary.
+                # Calculate epoch loss and accuracy, and update metrics dictionary.
                 ep_loss = ep_metrics[phase]['loss']/ep_metrics[phase]['count']
                 ep_accuracy = ep_metrics[phase]['accuracy']/ep_metrics[phase]['count']
 
-                # Show and log loss and accuracy
+                # Print and log loss and accuracy
                 print(f'Loss: {ep_loss}, Accuracy: {ep_accuracy}\n')
                 self.metrics[phase]['loss'].append(ep_loss)
                 self.metrics[phase]['accuracy'].append(ep_accuracy)
@@ -166,7 +163,15 @@ class ResNetClassifier():
         """
         Show graphs for Loss and Accuracy for both training and validation
         :param suffix: detail of suffix for file name
+        :param save_to_dir: location to save Training/Validation Loss/Accuracy graphs (default: resnet_graphs folder)
         """
+
+        # Create save_to_dir if it doesn't exist
+        if not os.path.exists(save_to_dir):
+            try:  
+                os.mkdir(save_to_dir)  
+            except OSError as error:  
+                print(error)
 
         # Get epochs
         epochs_range = range(0, self.epochs)
@@ -208,7 +213,7 @@ class ResNetClassifier():
         Save trained model/data into a file
         :param filename: name of file to save as
         :param file_type: type of file to save as (default: .h5)
-        :param save_to_dir: location of where to save (default: models folder)
+        :param save_to_dir: location to save trained model (default: models folder)
         """
 
         # Validate save_to_dir; if it does not exist, create save_to_dir
@@ -216,7 +221,7 @@ class ResNetClassifier():
             try:  
                 os.mkdir(save_to_dir)  
             except OSError as error:  
-                print(error)   
+                print(error)
 
         # Create path and validate existence; 
         save_to_path = f'{save_to_dir}/{filename}{file_type}'

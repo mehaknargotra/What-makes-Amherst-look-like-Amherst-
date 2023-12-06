@@ -1,13 +1,9 @@
-# import numpy as np
 import os
 import torch
-import glob
 
 from torchvision.io.image import read_image
-from torchvision.transforms.functional import normalize, resize, to_pil_image
-from torchvision.models import resnet18
+from torchvision.transforms.functional import to_pil_image
 from torchcam.methods import SmoothGradCAMpp, GradCAMpp, CAM
-# from omnixai.explainers.vision.specific.gradcam.pytorch.gradcam import GradCAM
 from torchvision import transforms
 
 import matplotlib.pyplot as plt
@@ -15,7 +11,8 @@ from torchcam.utils import overlay_mask
 from tqdm import tqdm
 
 
-# Class Activation Mapping
+""" Class Activation Mapping """
+
 
 # Links/References:
 # https://github.com/topics/class-activation-map
@@ -34,6 +31,10 @@ class ClassActivationMap():
         self.dataset = []
         
     def set_image_paths(self, img_path):
+        """
+        Save image_paths (Validation image paths to run CAMs on)
+        :param img_path: List of paths to validation images
+        """
         self.image_paths = img_path
     
     def extract_model(self, file_name: str, dir: str = "./models", file_type: str = ".h5"):
@@ -112,7 +113,10 @@ class ClassActivationMap():
         # Create directory/folder for graph data
         save_to_dir = os.path.join(save_to_dir, f"CAM_{file_suffix}")
         if not os.path.exists(save_to_dir):
-            os.mkdir(save_to_dir)
+            try:  
+                os.mkdir(save_to_dir)  
+            except OSError as error:  
+                print(error)
 
         print("Graphing ...")
 

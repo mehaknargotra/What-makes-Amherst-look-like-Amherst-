@@ -7,23 +7,26 @@ from process_data import data_loader
 # Main function
 def main():
 
-    # Directories for binary and non-binary datasets
-    bin_data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Binary_Dataset"
-    nonbin_data_dir = "/Users/Preston/CS-682/Final_Project/dataset/Nonbinary_Dataset"
+    # NOTE: Set directories for binary and non-binary datasets from dataset.zip
+    bin_data_dir = "/Users/.../dataset/Binary_Dataset"
+    nonbin_data_dir = "/Users/.../dataset/Nonbinary_Dataset"
 
-    for data_dir in [nonbin_data_dir]:
+    # Loop through binary and non-binary datasets
+    for data_dir in [nonbin_data_dir, bin_data_dir]:
 
-        for opt in ["adam"]:
+        # Loop through optimizers
+        for opt in ["sgd", "adam"]:
 
+            # Loop through maximum number of epochs to train on
             for epoch in [5, 10]:
 
-                # Code to identify Amherst features
-                training_flag = False
+                # Enable training when running hyperparameter combination for first time
+                training_flag = True
+                
+                # Loop through 
                 for cam_name in ["cam", "gradcam", "smoothgradcam"]:
                     
-                    if (data_dir == bin_data_dir) and (opt == "sgd") and (epoch == 10):
-                        continue
-
+                    # Run code to identify Amherst features
                     identify_amherst(
                         dataset_dir=data_dir,
                         use_binary=(data_dir == bin_data_dir),
@@ -35,6 +38,8 @@ def main():
                         learning_rate=0.001,
                         cam_type=cam_name
                     )
+
+                    # Disable training to run same pretrained model for other CAMs
                     training_flag = False
 
 
@@ -45,7 +50,7 @@ def identify_amherst(dataset_dir: str,
                      enable_training: bool = True,
                      max_epochs: int = 5,
                      optim: str = "adam",
-                     learning_rate: float = 0.0001,
+                     learning_rate: float = 0.001,
                      cam_type: str = "smoothgradcam"
                      ):
     """
@@ -59,8 +64,9 @@ def identify_amherst(dataset_dir: str,
     :param optim: optimizer ("sgd" or "adam")
     :param learning_rate: learning rate for training
     :param cam_type: name/type of CAM to run on
-        "reg" = regular CAM
-        "grad" = Grad-CAM
+        "cam" = regular CAM
+        "gradcam" = GradCAM
+        "smoothgradcam" = Smooth GradCAM
     """
     
     # Extract and process data from data_loader
@@ -114,6 +120,7 @@ def identify_amherst(dataset_dir: str,
     else:
         raise Exception("CAM type not supported")
     
+    # Graph and save CAM results
     cam.graph(file_suffix=suffix_str+f"_{cam_type}")
 
     print("\n------------------ FINISHED ------------------")

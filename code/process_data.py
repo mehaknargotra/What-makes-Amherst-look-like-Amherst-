@@ -1,25 +1,13 @@
 import os
-# from PIL import Image
 import torch
-from tqdm import tqdm
-import numpy as np
 import glob
 
 import torchvision.transforms as transforms
-from torchvision.datasets import ImageFolder
 from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image, ImageReadMode
 
 
-# Try two versions of classifications: 
-# - Keep non-Amherst cities separate (Non-binary dataset)
-# - Combine all together as one label (Binary dataset)
-
-# CODE REF: https://dilithjay.com/blog/custom-image-classifier-with-pytorch/
-
-# Loss Function
-# Binary Cross-Entropy Loss for two classes/labels (Amherst vs. Non-Amherst) 
-# Cross-Entropy Loss for multiple classes/labels (Amherst vs. NY vs. etc.)
+""" Extract images and save into Training/Validation Data Loaders """
 
 
 class CustomDataset(Dataset):
@@ -92,7 +80,6 @@ def data_loader(dataset_dir: str):
     print("\n------------------ RUNNING DATA LOADER ------------------")
 
     # Define transformer
-    # Calling tranform(image) would return an image which is an augmented version of the input image.
     transform = transforms.Compose([
         transforms.Resize((64, 64)),
         transforms.RandomHorizontalFlip(p=0.5),
