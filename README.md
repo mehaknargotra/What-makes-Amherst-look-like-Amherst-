@@ -8,5 +8,7 @@ To run program:
 3. Run python3 ./code/run.py
 
 Developers:
+
 Preston Yee
+
 Mehak Virender Nargotra
