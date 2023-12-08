@@ -9,6 +9,4 @@ To run program:
 
 Developers:
 
-Preston Yee
-
-Mehak Virender Nargotra
+Preston Yee, Mehak Virender Nargotra
